@@ -1,0 +1,56 @@
+version: '3'
+services:
+  proshop_backend:
+    container_name: proshop_backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '${PORT}:${PORT}'
+    environment:
+      - PORT=${PORT}
+      - MONGODB_URI=mongodb://root:example@mongo_proshop:27017/proshop?authSource=admin
+    volumes:
+      - .:/app
+    depends_on:
+      - mongo_proshop
+    networks:
+      - proshop-net
+
+  mongo_proshop:
+    image: mongo:latest
+    container_name: mongo_proshop
+    restart: always
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    networks:
+      - proshop-net
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    restart: always
+    ports:
+      - '8081:8081'
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo_proshop
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_AUTH_DATABASE: admin
+      ME_CONFIG_MONGODB_AUTH_USERNAME: root
+      ME_CONFIG_MONGODB_AUTH_PASSWORD: example
+      ME_CONFIG_OPTIONS_EDITORTHEME: ambiance
+    depends_on:
+      - mongo_proshop
+    networks:
+      - proshop-net
+
+volumes:
+  mongodb_data:
+
+networks:
+  proshop-net:
